@@ -1,0 +1,112 @@
+"""Ocean Optics HR4000 spectrometer driver (seabreeze/USB)."""
+
+import logging
+
+from seabreeze.spectrometers import Spectrometer as SeaBreeze
+
+from interfaces import Spectrometer, docstring
+
+logger = logging.getLogger(__name__)
+
+
+class HR4000(Spectrometer):
+    """Ocean Optics HR4000 control via seabreeze.
+
+    Dark correction
+    ---------------
+    Uses the CCD's electrically masked pixels (Toshiba TCD1304AP): the average
+    of these optically shielded pixels is subtracted from every reading. This
+    removes the dark-current offset precisely, without depending on the signal
+    minimum. seabreeze applies it internally through
+    ``intensities(correct_dark_counts=True)``.
+
+    Nonlinearity correction
+    -----------------------
+    The HR4000 stores nonlinearity correction coefficients in its EEPROM (a
+    factory-calibrated polynomial up to order 7). seabreeze applies them when
+    calling ``intensities(correct_nonlinearity=True)``. This corrects the CCD's
+    nonlinear response, which matters so the FFT in the OCT pipeline works on
+    intensities proportional to the true optical signal.
+    """
+
+    def __init__(self):
+        """Initialise the spectrometer in a disconnected state."""
+        self._spec: SeaBreeze | None = None
+        self._connected: bool = False
+        self._dark_enabled: bool = True
+        self._nonlinearity_enabled: bool = True
+
+    @docstring(Spectrometer.open)
+    def open(self) -> bool:
+        """Inherits its docstring from the matching interface."""
+        if self._spec is None:
+            try:
+                self._spec = SeaBreeze.from_first_available()
+            except Exception as e:
+                logger.error("HR4000: no se pudo conectar: %s", e)
+                return False
+        self._connected = self._spec is not None
+        return self._connected
+
+    @docstring(Spectrometer.close)
+    def close(self):
+        """Inherits its docstring from the matching interface."""
+        self._connected = False
+        if self._spec is not None:
+            try:
+                self._spec.close()
+            except Exception:
+                pass
+        self._spec = None
+
+    def _invalidate(self):
+        """Mark the connection as lost after a communication error."""
+        if self._connected:
+            logger.error(
+                "HR4000: communication lost — device disconnected")
+        self._connected = False
+        if self._spec is not None:
+            try:
+                self._spec.close()
+            except Exception:
+                pass
+        self._spec = None
+
+    @property
+    def is_connected(self) -> bool:
+        """Whether the spectrometer is currently connected."""
+        return self._connected and self._spec is not None
+
+    @docstring(Spectrometer.set_exposure_time)
+    def set_exposure_time(self, exposure_time_μs: int):
+        """Inherits its docstring from the matching interface."""
+        self.integration_time = exposure_time_μs
+        if self._spec is None:
+            raise RuntimeError("HR4000: no conectado")
+        try:
+            self._spec.integration_time_micros(  # type: ignore
+                exposure_time_μs)
+        except Exception as e:
+            self._invalidate()
+            raise RuntimeError(f"HR4000: comunicación perdida ({e})")
+
+    @docstring(Spectrometer.read)
+    def read(self):
+        """Inherits its docstring from the matching interface."""
+        if not self._connected or self._spec is None:
+            raise RuntimeError("HR4000: no conectado")
+
+        try:
+            wavelengths_nm = self._spec.wavelengths()
+            intensities = self._spec.intensities(
+                correct_dark_counts=self._dark_enabled,
+                correct_nonlinearity=self._nonlinearity_enabled,
+            )
+        except Exception as e:
+            self._invalidate()
+            raise RuntimeError(f"HR4000: comunicación perdida ({e})")
+
+        if wavelengths_nm is None or intensities is None:
+            raise RuntimeError("HR4000: espectrómetro no responde")
+
+        return wavelengths_nm, intensities
