@@ -4,7 +4,14 @@ from abc import ABC, abstractmethod
 
 
 class Device(ABC):
-    """Base class for any connectable hardware device."""
+    """Base class for any connectable hardware device.
+
+    Connection contract
+    -------------------
+    ``open()`` returns ``False`` (never raises) when the device cannot be
+    reached, so callers can branch on the boolean. ``close()`` is idempotent:
+    calling it with no active connection is a no-op and it never raises.
+    """
 
     @abstractmethod
     def open(self) -> bool:
@@ -19,7 +26,6 @@ class Device(ABC):
     def close(self) -> None:
         """Close the connection.
 
-        Raises:
-            ValueError: If no connection is currently active.
+        Idempotent: safe to call when already disconnected, and never raises.
         """
         ...

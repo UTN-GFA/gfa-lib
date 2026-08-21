@@ -10,6 +10,7 @@ from interfaces import MotionController, docstring
 
 logger = logging.getLogger(__name__)
 
+CR = chr(13)
 AXIS_NAMES = {1: "X", 2: "Y", 3: "Z"}
 
 
@@ -41,9 +42,6 @@ class ESP301(MotionController):
         self._available_axes: set = set()
         self._stop_requested: set = set()
 
-    # ----------------------------------------------------------
-    # MotionControllerInterface
-    # ----------------------------------------------------------
     @docstring(MotionController.open)
     def open(self) -> bool:
         """Inherits its docstring from the matching interface."""
@@ -60,6 +58,11 @@ class ESP301(MotionController):
                          self._port, type(e).__name__, e)
             return False
 
+        self._detect_axes()
+        return True
+
+    def _detect_axes(self) -> None:
+        """Probe axes 1-3 and record which ones respond to a position query."""
         # Detect available axes
         self._available_axes = set()
         for axis in (1, 2, 3):
@@ -89,10 +92,6 @@ class ESP301(MotionController):
                     )
             except Exception as e:
                 logger.warning("Axis %d (%s): exception (%s)", axis, name, e)
-
-        detected = [AXIS_NAMES[a] for a in sorted(self._available_axes)]
-        logger.info("ESP301 detected axes: %s", detected)
-        return True
 
     def move_absolute(self, axis: int, position_mm: float) -> None:
         """Move an axis to an absolute position in millimetres."""
@@ -194,7 +193,7 @@ class ESP301(MotionController):
             # ST is an emergency command. Do not use _send(): that method
             # reads a response and may inherit the long timeout of
             # _send_wait(), blocking the GUI thread during the move.
-            self._ser.write((f"{axis}ST" + chr(13)).encode("ascii"))
+            self._ser.write((f"{axis}ST" + CR).encode("ascii"))
             logger.warning("ESP301 axis %d: stop_motion requested", axis)
 
     def enable_axis(self, axis: int) -> None:
@@ -218,17 +217,11 @@ class ESP301(MotionController):
         """Set of available axes, e.g. {1, 2, 3}."""
         return self._available_axes.copy()
 
-    # ----------------------------------------------------------
-    # Extra: velocity (not in the interface, ESP301-specific)
-    # ----------------------------------------------------------
     def set_velocity(self, axis: int, vel_mm_s: float) -> None:
         """Set the axis velocity in mm/s (ESP301-specific)."""
         self._require_axis(axis)
         self._send(f"{axis}VA{vel_mm_s:.3f}")
 
-    # ----------------------------------------------------------
-    # Internal serial helpers
-    # ----------------------------------------------------------
     def _require_axis(self, axis: int) -> None:
         """Validate the connection and axis before a physical command."""
         if not self._ser or not self._ser.is_open:
@@ -242,7 +235,7 @@ class ESP301(MotionController):
         """Send an ASCII command plus CR with an adaptive wait."""
         if not self._ser or not self._ser.is_open:
             return ""
-        self._ser.write((cmd + "" + chr(13)).encode("ascii"))
+        self._ser.write((cmd + CR).encode("ascii"))
 
         start = time.time()
         while (time.time() - start) < max_wait:
@@ -262,7 +255,7 @@ class ESP301(MotionController):
         if not self._ser or not self._ser.is_open:
             return
         # Send WS
-        self._ser.write((cmd + "" + chr(13)).encode("ascii"))
+        self._ser.write((cmd + CR).encode("ascii"))
         # Send VE? (version query) as the signal that WS finished
         self._ser.write(b"VE?\r")
 

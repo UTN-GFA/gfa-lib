@@ -178,9 +178,12 @@ class Scan(ABC):
                 shape ``(length_opd,)`` for a line or ``(nlines, length_opd)``
                 for a frame.
         """
-        irr_us = interp1d(
-            self.wavenumber, np.flip(np.asarray(irr), axis=-1),
-        )(self.wavenumber_us)
+        irr = np.asarray(irr, dtype=float)
+        # Wavenumber per pixel. wavelength is ascending with the pixel index,
+        # so the wavenumber is descending; flip irradiance to ascending order.
+        k_pixel = 2 * np.pi / self.wavelength
+        irr_asc = np.flip(irr, axis=axis)
+        irr_us = interp1d(k_pixel, irr_asc, axis=axis)(self.wavenumber_us)
 
         spectrum = np.abs(
             zoom_fft(
@@ -189,7 +192,7 @@ class Scan(ABC):
                 m=self.opd_length,
                 fs=np.pi / self.wavenumber_step,  # type: ignore
                 endpoint=False,
-                axis=axis
+                axis=axis,
             )
         )
 

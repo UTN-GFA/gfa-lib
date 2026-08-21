@@ -40,7 +40,6 @@ class MockMC(MotionController):
         self._enabled = {ax: False for ax in self._axes}
         self._connected = False
         self._stop_requested = set()
-        self.stop_requests = []
 
     @docstring(MotionController.open)
     def open(self) -> bool:
@@ -139,7 +138,6 @@ class MockMC(MotionController):
         """
         self._check_axis(axis)
         self._stop_requested.add(axis)
-        self.stop_requests.append(axis)
 
     def enable_axis(self, axis: int):
         """Enable the motor drivers on an axis.

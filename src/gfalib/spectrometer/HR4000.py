@@ -1,9 +1,12 @@
 """Ocean Optics HR4000 spectrometer driver (seabreeze/USB)."""
 
 import logging
+import time
 
+import numpy as np
 from seabreeze.spectrometers import Spectrometer as SeaBreeze
 
+from gfalib.util import save_frames
 from interfaces import Spectrometer, docstring
 
 logger = logging.getLogger(__name__)
@@ -27,6 +30,12 @@ class HR4000(Spectrometer):
     calling ``intensities(correct_nonlinearity=True)``. This corrects the CCD's
     nonlinear response, which matters so the FFT in the OCT pipeline works on
     intensities proportional to the true optical signal.
+
+    Acquisition model
+    -----------------
+    seabreeze is request/response: there is no hardware frame buffer, so
+    :meth:`acquire` performs a software-timed loop, requesting one spectrum per
+    integration time until ``acquisition_time`` elapses.
     """
 
     def __init__(self):
@@ -44,12 +53,12 @@ class HR4000(Spectrometer):
                 self._spec = SeaBreeze.from_first_available()
             except Exception as e:
                 logger.error("HR4000: no se pudo conectar: %s", e)
-                return False
+                self._spec = None
         self._connected = self._spec is not None
         return self._connected
 
     @docstring(Spectrometer.close)
-    def close(self):
+    def close(self) -> None:
         """Inherits its docstring from the matching interface."""
         self._connected = False
         if self._spec is not None:
@@ -109,4 +118,36 @@ class HR4000(Spectrometer):
         if wavelengths_nm is None or intensities is None:
             raise RuntimeError("HR4000: espectrómetro no responde")
 
-        return wavelengths_nm, intensities
+        return np.asarray(wavelengths_nm), np.asarray(intensities)
+
+    @docstring(Spectrometer.acquire)
+    def acquire(self,
+                acquisition_time: int,
+                save_data: bool = True,
+                filename: str | None = None) -> np.ndarray:
+        """Inherits its docstring from the matching interface."""
+        if not self._connected or self._spec is None:
+            raise RuntimeError("HR4000: no conectado")
+
+        # seabreeze is request/response with no hardware frame buffer, so we
+        # loop in software: one spectrum per integration time.
+        frame_time_us = max(int(self._spec.integration_time_micros_limits[0]),
+                            self.integration_time)
+        nframes = max(1, int(acquisition_time / frame_time_us))
+
+        frames = []
+        for _ in range(nframes):
+            try:
+                _, intensities = self.read()
+            except Exception as e:
+                self._invalidate()
+                raise RuntimeError(f"HR4000: comunicación perdida ({e})")
+            frames.append(intensities)
+            time.sleep(frame_time_us / 1_000_000.0)
+
+        stacked = np.vstack(frames)
+
+        if save_data:
+            save_frames(stacked, filename=filename)
+
+        return stacked

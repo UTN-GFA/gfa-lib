@@ -1,7 +1,7 @@
 [project]
 name = "gfa-lib"
 version = "0.1.0"
-description = "Add your description here"
+description = "Hardware-control library for a Fourier-domain OCT laboratory setup."
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
@@ -11,6 +11,11 @@ dependencies = [
     "scipy>=1.18.0",
     "seabreeze>=2.11.0",
     "serial>=0.0.97",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
 ]
 
 [tool.ruff]
@@ -27,3 +32,7 @@ convention = "google"
 
 [tool.pyright]
 pythonPath = "src"
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "tests"]
+testpaths = ["tests"]

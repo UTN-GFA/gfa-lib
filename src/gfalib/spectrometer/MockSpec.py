@@ -123,6 +123,30 @@ class MockSpec(Spectrometer):
 
         return self._wavelengths_nm.copy(), intensities
 
+    @docstring(Spectrometer.acquire)
+    def acquire(self,
+                acquisition_time: int,
+                save_data: bool = True,
+                filename: str | None = None) -> np.ndarray:
+        """Inherits its docstring from the matching interface."""
+        if not self._connected:
+            raise RuntimeError(
+                "MockSpectrometer: acquire() llamado sin conectar")
+
+        # Software-timed loop: one frame per integration time.
+        frame_time_us = max(1, self._exposure_time)
+        nframes = max(1, int(acquisition_time / frame_time_us))
+
+        frames = np.tile(
+            self._generate_interferogram(), (nframes, 1)
+        ).astype(np.float64)
+
+        if save_data:
+            from gfalib.util import save_frames
+            save_frames(frames, filename=filename)
+
+        return frames
+
     def _generate_interferogram(self) -> np.ndarray:
         """Build a synthetic interferogram from the configured reflectors.
 

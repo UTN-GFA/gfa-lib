@@ -1,11 +1,9 @@
 """Wasatch Photonics Cobra HRC 2048 spectrometer driver (pylablib IMAQ)."""
 
-from datetime import datetime
-from pathlib import Path
-
 import numpy as np
 from pylablib.devices import IMAQ
 
+from gfalib.util import save_frames
 from interfaces import Spectrometer, docstring
 
 NPIXELS = 2048
@@ -196,6 +194,7 @@ class CobraHRC2048(Spectrometer):
             raise ValueError("No camera selected")
 
         self.message_camera(f"{parameter} {value}" + chr(13))
+
     def select_camera(self, camera_id: str):
         """Open a camera connection and push the stored settings.
 
@@ -228,17 +227,20 @@ class CobraHRC2048(Spectrometer):
     @docstring(Spectrometer.open)
     def open(self) -> bool:
         """Inherits its docstring from the matching interface."""
+        cameras = self.list_cameras()
+        if not cameras:
+            return False
         try:
-            self.select_camera(self.list_cameras()[0])
+            self.select_camera(cameras[0])
             return True
         except Exception:
             return False
 
     @docstring(Spectrometer.close)
-    def close(self):
+    def close(self) -> None:
         """Inherits its docstring from the matching interface."""
         if self.camera is None:
-            raise ValueError("No camera selected")
+            return
 
         self.camera.close()
         self._camera_id = None
@@ -268,7 +270,6 @@ class CobraHRC2048(Spectrometer):
         if self.camera is None:
             raise ValueError("No camera selected")
 
-        # acquisition_time = frames * frame_time = frames * 100 * line_time
         nframes = 1 + int(acquisition_time / (100 * self.line_time))
 
         if not self.camera_on:
@@ -282,27 +283,21 @@ class CobraHRC2048(Spectrometer):
         rng = self.camera.get_new_images_range()
         if rng is None:
             frames = np.empty((0, NPIXELS), dtype=DTYPE)
-
-        chunks = self.camera.read_multiple_images(
-            rng=rng, missing_frame="skip",
-        )
-        # chunks may be a list of 3-D arrays (chunks mode) or a list of
-        # 2-D frames (fallback); stack them all into (n_read, 2048).
-        if len(chunks) and chunks[0].ndim == 3:
-            frames = np.concatenate(chunks, axis=0, dtype=DTYPE)
         else:
-            frames = np.vstack(chunks, dtype=DTYPE)
+            chunks = self.camera.read_multiple_images(
+                rng=rng, missing_frame="skip",
+            )
+            # chunks may be a list of 3-D arrays (chunks mode) or a list of
+            # 2-D frames (fallback); stack them all into (n_read, 2048).
+            if len(chunks) and chunks[0].ndim == 3:
+                frames = np.concatenate(chunks, axis=0, dtype=DTYPE)
+            else:
+                frames = np.vstack(chunks, dtype=DTYPE)
 
         self.camera.stop_acquisition()
         self.camera.clear_acquisition()
 
         if save_data:
-            if filename is None:
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                filename = f"acquisition_{timestamp}"
-
-            filepath = Path(f"data/{filename}.npy")
-            np.save(filepath, frames)
+            save_frames(frames, filename=filename)
 
         return frames
-
