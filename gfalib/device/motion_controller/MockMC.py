@@ -8,7 +8,7 @@ speed.
 import logging
 import time
 
-from interfaces import MotionController, docstring
+from gfalib.interface import MotionController, docstring
 
 logger = logging.getLogger(__name__)
 

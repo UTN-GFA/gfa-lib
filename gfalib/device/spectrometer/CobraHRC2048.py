@@ -3,8 +3,8 @@
 import numpy as np
 from pylablib.devices import IMAQ
 
+from gfalib.interface import Spectrometer, docstring
 from gfalib.util import save_frames
-from interfaces import Spectrometer, docstring
 
 NPIXELS = 2048
 BIT_DEPTH = 16
@@ -242,7 +242,11 @@ class CobraHRC2048(Spectrometer):
         if self.camera is None:
             return
 
-        self.camera.close()
+        try:
+            self.camera.close()
+        except Exception:
+            pass
+        self.camera = None
         self._camera_id = None
 
     @docstring(Spectrometer.set_exposure_time)

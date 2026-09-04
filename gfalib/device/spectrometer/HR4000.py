@@ -6,8 +6,8 @@ import time
 import numpy as np
 from seabreeze.spectrometers import Spectrometer as SeaBreeze
 
+from gfalib.interface import Spectrometer, docstring
 from gfalib.util import save_frames
-from interfaces import Spectrometer, docstring
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +44,7 @@ class HR4000(Spectrometer):
         self._connected: bool = False
         self._dark_enabled: bool = True
         self._nonlinearity_enabled: bool = True
+        self.integration_time: int = 10000
 
     @docstring(Spectrometer.open)
     def open(self) -> bool:

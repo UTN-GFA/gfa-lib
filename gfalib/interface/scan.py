@@ -63,7 +63,7 @@ class Scan(ABC):
 
         if len(wavelength.shape) > 1:
             raise ValueError(
-                "Expected a 1D array. Received: {wavelength.shape}")
+                f"Expected a 1D array. Received: {wavelength.shape}")
 
         self._wavelength = wavelength
         self.npixels = len(wavelength)

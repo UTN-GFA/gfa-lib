@@ -7,21 +7,23 @@ requires-python = ">=3.14"
 dependencies = [
     "numpy>=2.5.2",
     "pylablib-lightweight>=1.4.3",
-    "ruff>=0.16.4",
+    "pyqtgraph>=0.14.0",
+    "pyserial>=3.5",
+    "pyside6>=6.11.2",
     "scipy>=1.18.0",
     "seabreeze>=2.11.0",
-    "serial>=0.0.97",
 ]
 
 [dependency-groups]
 dev = [
     "pytest>=8.0",
+    "ruff>=0.16.4",
 ]
 
 [tool.ruff]
 line-length = 88
 target-version = "py314"
-src = ["src"]
+src = ["gfalib"]
 
 [tool.ruff.lint]
 select = ["E", "F", "D", "I"]
@@ -31,8 +33,8 @@ ignore = ["D203", "D213"]
 convention = "google"
 
 [tool.pyright]
-pythonPath = "src"
+pythonPath = "gfalib"
 
 [tool.pytest.ini_options]
-pythonpath = ["src", "tests"]
-testpaths = ["tests"]
+pythonpath = ["."]
+testpaths = ["test"]

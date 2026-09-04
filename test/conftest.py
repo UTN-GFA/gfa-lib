@@ -1,17 +1,10 @@
 """Shared pytest fixtures for gfa-lib tests."""
 
-import sys
-from pathlib import Path
-
-# Make the ``src`` layout importable (``gfalib`` and ``interfaces`` packages).
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-
 import numpy as np
 import pytest
-
-from gfalib.motion_controller.MockMC import MockMC
-from gfalib.spectrometer.MockSpec import MockSpec
-from interfaces.scan import Scan
+from gfalib.device.motion_controller.MockMC import MockMC
+from gfalib.device.spectrometer.MockSpec import MockSpec
+from gfalib.interface import Scan
 
 
 class _ConcreteScan(Scan):

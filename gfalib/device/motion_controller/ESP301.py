@@ -6,7 +6,7 @@ import time
 import numpy as np
 import serial
 
-from interfaces import MotionController, docstring
+from gfalib.interface import MotionController, docstring
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,6 @@
 """Tests for the MockSpec simulated spectrometer."""
 
 
-
 def test_read_shape_and_type(mock_spec):
     """read() returns wavelength/intensity arrays of the right shape."""
     wl, irr = mock_spec.read()
@@ -20,7 +19,7 @@ def test_acquire_returns_frames(mock_spec):
 
 def test_acquire_requires_connection():
     """acquire() raises RuntimeError when called before open()."""
-    from gfalib.spectrometer.MockSpec import MockSpec
+    from gfalib.device.spectrometer.MockSpec import MockSpec
 
     spec = MockSpec()
     try:

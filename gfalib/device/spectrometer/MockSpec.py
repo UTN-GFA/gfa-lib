@@ -10,7 +10,7 @@ import time
 
 import numpy as np
 
-from interfaces import Spectrometer, docstring
+from gfalib.interface import Spectrometer, docstring
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ class MockSpec(Spectrometer):
                  wavelength_min_nm: float = 780.0,
                  wavelength_max_nm: float = 920.0,
                  npixels: int = 3648,
-                 reflectors: list[Reflector] = [],
+                 reflectors: list[Reflector] | None = None,
                  noise_level: float = 0.02,
                  exposure_time_μs: int = 10000,
                  dark_counts: float = 0.0):
@@ -67,7 +67,7 @@ class MockSpec(Spectrometer):
             )
         self._dark_counts = dark.copy()
 
-        if len(reflectors) == 0:
+        if not reflectors:
             self.reflectors = [
                 Reflector(depth_m=0.5e-3, amplitude=1.0),
                 Reflector(depth_m=1.2e-3, amplitude=0.6),

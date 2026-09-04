@@ -1,8 +1,7 @@
 """Tests for the spectral-to-depth Scan conversion."""
 
 import numpy as np
-
-from interfaces.scan import Scan
+from gfalib.interface import Scan
 
 
 class _ConcreteScan(Scan):

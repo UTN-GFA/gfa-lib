@@ -8,15 +8,15 @@ depth (optical path difference, OPD) profile.
 
 ## Layout
 
-Each concrete class implements the matching `interfaces` ABC, so the
+Each concrete class implements the matching `interface` ABC, so the
 acquisition code is independent of the specific hardware. Methods shared
 across drivers copy the interface docstring at runtime via the `docstring`
-decorator in `interfaces/__init__.py`, keeping documentation in one place.
+decorator in `gfalib/interface/__init__.py`, keeping documentation in one place.
 
 ## Dependencies
 
 `numpy`, `scipy`, `pylablib-lightweight` (IMAQ camera interface),
-`seabreeze` (HR4000) and `serial` (ESP301). Pinned in `pyproject.toml`;
+`seabreeze` (HR4000) and `pyserial` (ESP301). Pinned in `pyproject.toml`;
 install with `uv sync`.
 
 ## Lint
