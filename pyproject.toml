@@ -5,13 +5,13 @@ description = "Hardware-control library for a Fourier-domain OCT laboratory setu
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "matplotlib>=3.11.1",
     "numpy>=2.5.2",
     "pylablib-lightweight>=1.4.3",
-    "pyqtgraph>=0.14.0",
     "pyserial>=3.5",
-    "pyside6>=6.11.2",
     "scipy>=1.18.0",
     "seabreeze>=2.11.0",
+    "spyder-kernels>=3.1.6",
 ]
 
 [dependency-groups]

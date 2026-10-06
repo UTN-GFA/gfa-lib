@@ -1,16 +1,31 @@
 """Abstract motion-controller interface for gfa-lib."""
 
-from abc import abstractmethod
-
-from .device import Device
+from abc import ABC, abstractmethod
 
 
-class MotionController(Device):
+class MotionController(ABC):
     """Motion controller with positions in canonical millimetres.
 
     Each implementation converts between millimetres and the hardware's
     native units before sending or interpreting commands.
     """
+
+    @abstractmethod
+    def open(self) -> bool:
+        """Open the connection to the device.
+
+        Returns:
+            bool: True if the connection succeeded, False otherwise.
+        """
+        ...
+
+    @abstractmethod
+    def close(self) -> None:
+        """Close the connection.
+
+        Idempotent: safe to call when already disconnected, and never raises.
+        """
+        ...
 
     @abstractmethod
     def move_absolute(self, axis: int, position_mm: float) -> None:

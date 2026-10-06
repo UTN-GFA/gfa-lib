@@ -1,18 +1,33 @@
 """Abstract spectrometer interface for gfa-lib."""
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
 import numpy as np
 
-from .device import Device
 
-
-class Spectrometer(Device):
+class Spectrometer(ABC):
     """Spectrometer capable of acquiring spectral irradiance.
 
     Connection follows the :class:`Device` contract: ``open`` returns a bool
     and never raises, ``close`` is idempotent and never raises.
     """
+
+    @abstractmethod
+    def open(self) -> bool:
+        """Open the connection to the device.
+
+        Returns:
+            bool: True if the connection succeeded, False otherwise.
+        """
+        ...
+
+    @abstractmethod
+    def close(self) -> None:
+        """Close the connection.
+
+        Idempotent: safe to call when already disconnected, and never raises.
+        """
+        ...
 
     @abstractmethod
     def set_exposure_time(self, exposure_time_μs: int):

@@ -6,7 +6,7 @@ import time
 import numpy as np
 from seabreeze.spectrometers import Spectrometer as SeaBreeze
 
-from gfalib.interface import Spectrometer, docstring
+from gfalib.interface import Spectrometer
 from gfalib.util import save_frames
 
 logger = logging.getLogger(__name__)
@@ -46,9 +46,7 @@ class HR4000(Spectrometer):
         self._nonlinearity_enabled: bool = True
         self.integration_time: int = 10000
 
-    @docstring(Spectrometer.open)
     def open(self) -> bool:
-        """Inherits its docstring from the matching interface."""
         if self._spec is None:
             try:
                 self._spec = SeaBreeze.from_first_available()
@@ -58,9 +56,7 @@ class HR4000(Spectrometer):
         self._connected = self._spec is not None
         return self._connected
 
-    @docstring(Spectrometer.close)
     def close(self) -> None:
-        """Inherits its docstring from the matching interface."""
         self._connected = False
         if self._spec is not None:
             try:
@@ -87,9 +83,7 @@ class HR4000(Spectrometer):
         """Whether the spectrometer is currently connected."""
         return self._connected and self._spec is not None
 
-    @docstring(Spectrometer.set_exposure_time)
     def set_exposure_time(self, exposure_time_μs: int):
-        """Inherits its docstring from the matching interface."""
         self.integration_time = exposure_time_μs
         if self._spec is None:
             raise RuntimeError("HR4000: no conectado")
@@ -100,9 +94,7 @@ class HR4000(Spectrometer):
             self._invalidate()
             raise RuntimeError(f"HR4000: comunicación perdida ({e})")
 
-    @docstring(Spectrometer.read)
     def read(self):
-        """Inherits its docstring from the matching interface."""
         if not self._connected or self._spec is None:
             raise RuntimeError("HR4000: no conectado")
 
@@ -121,12 +113,10 @@ class HR4000(Spectrometer):
 
         return np.asarray(wavelengths_nm), np.asarray(intensities)
 
-    @docstring(Spectrometer.acquire)
     def acquire(self,
                 acquisition_time: int,
                 save_data: bool = True,
                 filename: str | None = None) -> np.ndarray:
-        """Inherits its docstring from the matching interface."""
         if not self._connected or self._spec is None:
             raise RuntimeError("HR4000: no conectado")
 

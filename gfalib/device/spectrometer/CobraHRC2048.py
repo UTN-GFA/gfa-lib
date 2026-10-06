@@ -3,7 +3,7 @@
 import numpy as np
 from pylablib.devices import IMAQ
 
-from gfalib.interface import Spectrometer, docstring
+from gfalib.interface import Spectrometer
 from gfalib.util import save_frames
 
 NPIXELS = 2048
@@ -224,9 +224,7 @@ class CobraHRC2048(Spectrometer):
         except Exception as e:
             raise ValueError(f"Error selecting camera: {e}")
 
-    @docstring(Spectrometer.open)
     def open(self) -> bool:
-        """Inherits its docstring from the matching interface."""
         cameras = self.list_cameras()
         if not cameras:
             return False
@@ -236,9 +234,7 @@ class CobraHRC2048(Spectrometer):
         except Exception:
             return False
 
-    @docstring(Spectrometer.close)
     def close(self) -> None:
-        """Inherits its docstring from the matching interface."""
         if self.camera is None:
             return
 
@@ -249,14 +245,10 @@ class CobraHRC2048(Spectrometer):
         self.camera = None
         self._camera_id = None
 
-    @docstring(Spectrometer.set_exposure_time)
     def set_exposure_time(self, exposure_time_μs: int):
-        """Inherits its docstring from the matching interface."""
         self.integration_time = exposure_time_μs
 
-    @docstring(Spectrometer.read)
     def read(self) -> tuple[np.ndarray, np.ndarray]:
-        """Inherits its docstring from the matching interface."""
         if self.camera is None:
             return WAVELENGTHS, np.zeros(NPIXELS, dtype=DTYPE)
 
@@ -265,12 +257,10 @@ class CobraHRC2048(Spectrometer):
 
         return WAVELENGTHS, np.array(self.camera.snap(), dtype=DTYPE)
 
-    @docstring(Spectrometer.acquire)
     def acquire(self,
                 acquisition_time: int,
                 save_data: bool = True,
                 filename: str | None = None) -> np.ndarray:
-        """Inherits its docstring from the matching interface."""
         if self.camera is None:
             raise ValueError("No camera selected")
 

@@ -6,7 +6,7 @@ import time
 import numpy as np
 import serial
 
-from gfalib.interface import MotionController, docstring
+from gfalib.interface import MotionController
 
 logger = logging.getLogger(__name__)
 
@@ -42,9 +42,7 @@ class ESP301(MotionController):
         self._available_axes: set = set()
         self._stop_requested: set = set()
 
-    @docstring(MotionController.open)
     def open(self) -> bool:
-        """Inherits its docstring from the matching interface."""
         try:
             self._ser = serial.Serial(
                 self._port,

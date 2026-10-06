@@ -10,7 +10,7 @@ import time
 
 import numpy as np
 
-from gfalib.interface import Spectrometer, docstring
+from gfalib.interface import Spectrometer
 
 logger = logging.getLogger(__name__)
 
@@ -79,22 +79,16 @@ class MockSpec(Spectrometer):
             wavelength_min_nm, wavelength_max_nm, npixels
         )
 
-    @docstring(Spectrometer.open)
     def open(self) -> bool:
-        """Inherits its docstring from the matching interface."""
         self._connected = True
         logger.info("MockSpectrometer conectado (simulación)")
         return True
 
-    @docstring(Spectrometer.close)
     def close(self):
-        """Inherits its docstring from the matching interface."""
         self._connected = False
         logger.info("MockSpectrometer desconectado")
 
-    @docstring(Spectrometer.set_exposure_time)
     def set_exposure_time(self, exposure_time_μs: int):
-        """Inherits its docstring from the matching interface."""
         self._exposure_time = exposure_time_μs
 
     def read(self):
@@ -123,12 +117,10 @@ class MockSpec(Spectrometer):
 
         return self._wavelengths_nm.copy(), intensities
 
-    @docstring(Spectrometer.acquire)
     def acquire(self,
                 acquisition_time: int,
                 save_data: bool = True,
                 filename: str | None = None) -> np.ndarray:
-        """Inherits its docstring from the matching interface."""
         if not self._connected:
             raise RuntimeError(
                 "MockSpectrometer: acquire() llamado sin conectar")

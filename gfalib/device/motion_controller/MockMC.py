@@ -8,7 +8,7 @@ speed.
 import logging
 import time
 
-from gfalib.interface import MotionController, docstring
+from gfalib.interface import MotionController
 
 logger = logging.getLogger(__name__)
 
@@ -41,18 +41,14 @@ class MockMC(MotionController):
         self._connected = False
         self._stop_requested = set()
 
-    @docstring(MotionController.open)
     def open(self) -> bool:
-        """Inherits its docstring from the matching interface."""
         self._connected = True
         detected = [AXIS_NAMES.get(a, str(a))
                     for a in sorted(self._axes)]
         logger.info("MockMC conectado, ejes: %s", detected)
         return True
 
-    @docstring(MotionController.close)
     def close(self):
-        """Inherits its docstring from the matching interface."""
         self._connected = False
         logger.info("MockMotionController desconectado")
 
