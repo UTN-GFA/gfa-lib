@@ -1,0 +1,35 @@
+name: Pylint
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Instala uv para gestionar entornos y dependencias a máxima velocidad
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Install dependencies and Pylint
+        run: |
+          uv sync --extra dev
+          uv pip install pylint
+
+      - name: Analysing the code with pylint
+        run: |
+          uv run pylint gfalib
+          
